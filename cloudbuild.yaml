@@ -1,0 +1,28 @@
+﻿steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    echo 'VITE_BUYBACK_SERVER_URL=${_BUYBACK_SERVER_URL}' >> .env
+    echo 'VITE_ITEM_PARSER_SERVER_URL=${_ITEM_PARSER_SERVER_URL}' >> .env
+    echo 'VITE_LANGUAGES=${_LANGUAGES}' >> .env
+    echo 'VITE_REGIONS=${_REGIONS}' >> .env
+    cat .env
+- name: node
+  entrypoint: npm
+  args:
+  - 'install'
+- name: node
+  entrypoint: npm
+  args:
+  - 'run'
+  - 'build'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'app'
+  - 'deploy'
+timeout: '800s'
+options:
+  logging: CLOUD_LOGGING_ONLY
