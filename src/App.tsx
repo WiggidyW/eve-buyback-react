@@ -8,6 +8,7 @@ import "./App.css";
 import Content from "./content/Content";
 import Header from "./Header";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { getHashQuery } from "./HashQuery";
 
 const Theme = createTheme({
   palette: {
@@ -26,20 +27,10 @@ const App = (props: Props): ReactElement => {
   const { buybackServerUrl, itemParserServerUrl, languages, regions } = props;
 
   const [getAutoConfirmParse, setAutoConfirmParse] = useAutoConfirmParse();
-  // const [getAutoConfirmParse, setAutoConfirmParse] = [
-  //   () => true,
-  //   (_: boolean) => {},
-  // ];
   const [getLanguage, setLanguage] = useLanguage(languages[0]);
-  // const [getLanguage, setLanguage] = [() => "en", (_: string) => {}];
-
   const parseClient = useState(() => initParseClient(itemParserServerUrl))[0];
   const buyClient = useState(() => initBuyClient(buybackServerUrl))[0];
   const hashQuery = useState(getHashQuery)[0];
-  // const parseClient = useState(initParseClient(itemParserServerUrl))[0];
-  // const buyClient = useState(initBuyClient(buybackServerUrl))[0];
-  // const hashQuery = useState(initHashQuery())[0];
-
   const [popup, setPopup] = useState<Popup>();
 
   return (
@@ -149,12 +140,5 @@ const initBuyClient = (baseUrl: string): BuybackClient =>
 
 const initParseClient = (baseUrl: string): ItemParserClient =>
   new ItemParserClient(new TwirpFetchTransport({ baseUrl }));
-
-const getHashQuery = (): string | undefined => {
-  const re = /^[0123456789abcdef]{15,16}\/{0,1}$/;
-  const hash = window.location.pathname.substring(1);
-  if (hash !== "" && re.test(hash)) return hash;
-  else return undefined;
-};
 
 export default App;

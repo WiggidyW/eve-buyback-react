@@ -11,7 +11,12 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { priceToStr, timestampToEveDate, timestampToLocalDate } from "./Util";
+import {
+  priceToStr,
+  timestampToEveDate,
+  timestampToLocalDate,
+} from "./FmtUtil";
+import { setHashQuery } from "../HashQuery";
 
 interface Props {
   rep?: BuybackRep;
@@ -86,10 +91,6 @@ const BuybackDetails = (props: { rep: BuybackRep }): ReactElement => {
       </Table>
     </TableContainer>
   );
-};
-
-const setHashQuery = (hash: string): void => {
-  window.history.pushState({}, "", `/${hash}`);
 };
 
 export default ItemResult;
