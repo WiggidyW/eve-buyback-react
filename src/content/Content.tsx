@@ -9,6 +9,8 @@ import { CircularProgress } from "@mui/material";
 import ItemInput from "./ItemInput";
 import ItemConfirmation from "./ItemConfirmation";
 import ItemResult from "./ItemResult";
+import { isCheckHit } from "./PbUtil";
+import { setHashQuery } from "../HashQuery";
 
 interface Props {
   getAutoConfirmParse: () => boolean;
@@ -32,7 +34,6 @@ const Content = (props: Props): ReactElement => {
   } = props;
 
   const [getRegion, setRegion] = useRegion();
-
   const [rep, setRep] = useState<BuybackRep | ParseRep>();
   const [fetching, setFetching] = useState(hashQuery !== undefined);
 
@@ -49,8 +50,17 @@ const Content = (props: Props): ReactElement => {
         language: getLanguage(),
       }).response;
 
-      // Set the rep to the buyback rep
-      setRep(buybackRep);
+      // Set the rep to the buyback rep if it exists.
+      if (isCheckHit(buybackRep)) setRep(buybackRep);
+      // Otherwise, remove the hash query from the url and throw a popup
+      else {
+        setHashQuery("");
+        setPopup({
+          message: `No appraisal found for the hash code "${hashQuery}"`,
+          title: "No Appraisal Found",
+          ok: false,
+        });
+      }
 
       // If an error occurs, throw an error popup
     } catch (e) {
