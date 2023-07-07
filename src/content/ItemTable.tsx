@@ -17,7 +17,7 @@ import {
 import { ReactElement, useState } from "react";
 import { BuybackItem } from "./BuybackItem";
 import { RepItem } from "../proto/buyback";
-import { quantityToStr, priceToStr } from "./Util";
+import { quantityToStr, priceToStr } from "./FmtUtil";
 
 interface Props<I> {
   items: I[];
