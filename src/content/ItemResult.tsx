@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 import { TableBuyback } from "./ItemTable";
 import { Rep as BuybackRep } from "../proto/buyback";
-import { BuybackItemsFromRepItems } from "./BuybackItem";
+import { buybackItemsFromRepItems } from "./BuybackItem";
 import {
   AppBar,
   Table,
@@ -28,7 +28,8 @@ const ItemResult = (props: Props): ReactElement => {
   if (rep === undefined) return <></>;
   else {
     setHashQuery(rep.hash); // This is gonna be called too often here (shouldn't need to happen every render) TODO: fix
-    const [acceptedItems, rejectedItems] = BuybackItemsFromRepItems(rep.items);
+    const { accepted: acceptedItems, rejected: rejectedItems } =
+      buybackItemsFromRepItems(rep.items);
 
     return (
       <>
@@ -55,13 +56,15 @@ const BuybackDetails = (props: { rep: BuybackRep }): ReactElement => {
   return (
     <TableContainer
       component={AppBar}
-      sx={{ marginTop: "80px", position: "absolute" }}
+      sx={{ marginTop: "80px", position: "absolute", overflow: "visible" }}
     >
       <Table
         size={"small"}
         sx={{
           tableLayout: "fixed",
           "& .MuiTableCell-root": { align: "center" },
+          whiteSpace: "nowrap",
+          minWidth: "960px",
         }}
       >
         <TableHead>

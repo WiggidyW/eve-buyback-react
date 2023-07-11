@@ -15,9 +15,7 @@ interface BuybackItems {
   rejected: BuybackItem[];
 }
 
-const BuybackItemsFromRepItems = (
-  repItems: RepItem[]
-): [BuybackItem[], BuybackItem[]] => {
+const buybackItemsFromRepItems = (repItems: RepItem[]): BuybackItems => {
   const buybackItemsMapped = new Map<number, BuybackItemUninit>();
   let acceptedLength = 0;
   let rejectedLength = 0;
@@ -76,8 +74,11 @@ const BuybackItemsFromRepItems = (
     }
   });
 
-  return [buybackItems.accepted, buybackItems.rejected];
+  return {
+    accepted: buybackItems.accepted,
+    rejected: buybackItems.rejected,
+  };
 };
 
 export type { BuybackItem, BuybackItems };
-export { BuybackItemsFromRepItems };
+export { buybackItemsFromRepItems };
