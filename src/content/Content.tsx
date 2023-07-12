@@ -12,6 +12,9 @@ import ItemResult from "./ItemResult";
 import { isCheckHit } from "./PbUtil";
 import { setHashQuery } from "../HashQuery";
 
+const MAX_BUY_ATTEMPTS = 3;
+const BUY_ATTEMPT_DELAY_MS = 1000;
+
 interface Props {
   getAutoConfirmParse: () => boolean;
   itemParserClient: ItemParserClient;
@@ -39,10 +42,10 @@ const Content = (props: Props): ReactElement => {
 
   useEffect(() => {
     // If a hash query is provided, send a hash query request
-    if (hashQuery !== undefined) sendHashQuery(hashQuery);
+    if (hashQuery !== undefined) sendHashReq(hashQuery);
   }, [hashQuery]);
 
-  const sendHashQuery = async (hashQuery: string) => {
+  const sendHashReq = async (hashQuery: string) => {
     try {
       // Send a check request to the buyback server using the hashQuery
       const buybackRep = await buybackClient.check({
@@ -71,19 +74,14 @@ const Content = (props: Props): ReactElement => {
     setFetching(false);
   };
 
-  const onAcceptParse = async (
+  const sendBuyReq = async (
     region: string,
     items: KnownItem[],
     enableSetFetcing?: boolean
   ) => {
-    // Throw an invalid input popup if the input is invalid
-    if (items.length === 0) setPopup(NoKnownItems);
-    else if (region === "") setPopup(PleaseSelectRegion);
-    // If the input is valid, continue
-    else {
-      // If enabled, Set fetching to true (triggering a loading screen)
-      if (enableSetFetcing) setFetching(true);
-
+    const sendBuyReqInner = async (attempt?: number) => {
+      // If the attempt is undefined, set it to 1
+      if (attempt === undefined) attempt = 1;
       try {
         // Send a buyback request to the buyback server using the parsed items
         const buybackRep = await buybackClient.buy({
@@ -97,18 +95,34 @@ const Content = (props: Props): ReactElement => {
 
         // Set the rep to the buyback rep
         setRep(buybackRep);
-
-        // If an error occurs, throw an error popup
       } catch (e) {
-        setPopup(Err(e as Error));
+        // If the attempt is less than MAX_ATTEMPTS, wait ATTEMPT_DELAY_MS before retrying
+        if (attempt < MAX_BUY_ATTEMPTS)
+          await setTimeout(
+            () => sendBuyReqInner(attempt! + 1),
+            BUY_ATTEMPT_DELAY_MS
+          );
+        // Otherwise, throw an error popup
+        else setPopup(Err(e as Error));
       }
+    };
+
+    // Throw an invalid input popup if the input is invalid
+    if (items.length === 0) setPopup(NoKnownItems);
+    else if (region === "") setPopup(PleaseSelectRegion);
+    // If the input is valid, continue
+    else {
+      // If enabled, Set fetching to true (triggering a loading screen)
+      if (enableSetFetcing) setFetching(true);
+
+      await sendBuyReqInner();
 
       // If enabled, Set fetching to false (triggering the main screen)
       if (enableSetFetcing) setFetching(false);
     }
   };
 
-  const onSubmitInput = async (region: string, text: string) => {
+  const sendParseReq = async (region: string, text: string) => {
     // Throw an invalid input popup if the input is invalid
     if (region === "") setPopup(PleaseSelectRegion);
     else if (text.trim() === "") setPopup(PleaseEnterItems);
@@ -126,7 +140,7 @@ const Content = (props: Props): ReactElement => {
 
         // If auto confirm is enabled, send a buyback request to the buyback server
         if (getAutoConfirmParse()) {
-          await onAcceptParse(region, parseRep.knownItems);
+          await sendBuyReq(region, parseRep.knownItems);
 
           // Otherwise, set the rep to the parse rep
           // and the region to the selected region
@@ -152,11 +166,11 @@ const Content = (props: Props): ReactElement => {
     return (
       <>
         <ItemConfirmation
-          onAccept={(v: KnownItem[]) => onAcceptParse(getRegion(), v, true)}
+          onAccept={(v: KnownItem[]) => sendBuyReq(getRegion(), v, true)}
           onReject={() => setRep(undefined)}
           rep={isParseRep(rep) ? (rep as ParseRep) : undefined}
         />
-        <ItemInput onSubmit={onSubmitInput} regions={regions} />
+        <ItemInput onSubmit={sendParseReq} regions={regions} />
         <ItemResult rep={isBuybackRep(rep) ? (rep as BuybackRep) : undefined} />
       </>
     );
