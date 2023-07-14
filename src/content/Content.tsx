@@ -81,7 +81,7 @@ const Content = (props: Props): ReactElement => {
   ) => {
     const sendBuyReqInner = async (attempt?: number) => {
       // If the attempt is undefined, set it to 1
-      if (attempt === undefined) attempt = 1;
+      if (attempt === undefined) attempt = 0;
       try {
         // Send a buyback request to the buyback server using the parsed items
         const buybackRep = await buybackClient.buy({
